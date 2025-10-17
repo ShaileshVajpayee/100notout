@@ -98,6 +98,7 @@
 		<div class="form-control col-header">👤 Player Name</div>
 		<div class="form-control col-header">🏆 Total Score</div>
 		<div class="form-control col-header">📝 Current Round</div>
+		<div class="form-control col-header">⚠️ Penalty</div>
 		<div class="form-control col-header">🎯 Status</div>
 	  </div>
 	</div>
@@ -116,7 +117,15 @@
 		<div class="total-score form-control">{{ gamer.totalScore }}</div>
 		<input type="number" v-model.number="gamer.currentScore" class="form-control current-score" 
 			   placeholder="Enter score" min="0" max="999" @input="validateScore(gamer)" @focus="clearScoreInput"
-			   :disabled="gamer.isBusted">
+			   :disabled="gamer.isBusted || gamer.hasPenalty">
+		<div class="form-control d-flex align-items-center justify-content-center">
+		  <button type="button" class="btn btn-sm" 
+				  :class="gamer.hasPenalty ? 'btn-danger' : 'btn-outline-danger'"
+				  @click="togglePenalty(gamer)"
+				  :disabled="gamer.isBusted">
+			{{ gamer.hasPenalty ? '⚠️ PENALTY' : '⚠️ Penalty' }}
+		  </button>
+		</div>
 		<div class="form-control d-flex align-items-center justify-content-center">
 		  <span v-if="gamer.isBusted" class="badge badge-danger">💀 BUSTED</span>
 		  <span v-else-if="gamer.totalScore >= 90" class="badge badge-warning">⚠️ DANGER</span>
