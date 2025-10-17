@@ -132,6 +132,14 @@ html, body {
 	border-color: rgba(255, 255, 255, 0.3) !important;
 }
 
+/* Penalty player styling */
+.gamer-row .current-score:disabled {
+	background: #ffe6e6;
+	border-color: #ff9999;
+	color: #cc0000;
+	font-weight: bold;
+}
+
 /* Button styling */
 .btn {
 	border-radius: 25px;
@@ -141,6 +149,24 @@ html, body {
 	border: none;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 	font-size: 1.1rem;
+}
+
+.btn-sm {
+	padding: 6px 12px;
+	font-size: 0.9rem;
+	border-radius: 15px;
+}
+
+.btn-outline-danger {
+	color: #dc3545;
+	border: 2px solid #dc3545;
+	background-color: transparent;
+}
+
+.btn-outline-danger:hover {
+	color: white;
+	background-color: #dc3545;
+	border-color: #dc3545;
 }
 
 .btn:hover {
