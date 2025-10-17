@@ -2,66 +2,167 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-	<meta charset=utf-8>
-	<title></title>
+	<meta charset="utf-8">
+	<title>100 Not Out - Card Game Score Tracker</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/css/bootstrap.min.css">
+	<meta name="description" content="Track scores for the 100 Not Out card game. First player to cross 100 loses!">
+	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="./style.css">
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.9/vue.min.js"></script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.14/vue.min.js"></script>
 	<script type="text/javascript" src="./app.js" async></script>
 </head>
 <body>
 <div class="container-fluid" id="app">
+  <!-- Header Section -->
   <div class="row">
-	<div class="col-md-12">
+	<div class="col-12">
 	  <div class="header">
-		<h3>100 NOT OUT</h3>
+		<h3>🃏 100 NOT OUT</h3>
 	  </div>
 	</div>
   </div>
-  <div class="row">
-	<div id="resetGameSection" class="col-md-2 mb-3">
-	  <button type="button" class="btn btn-secondary" v-on:click="resetGame">Reset Game</button>
-	</div>
-	<div class="col-md-5">
-	  <div class="input-group mb-3">
-		<div class="input-group-prepend">
-		  <span class="input-group-text">Lowest score</span>
-		</div>
-		<div class="form-control">{{lowestScore}}</div>
-		<div class="input-group-append">
-		  <button type="button" class="btn btn-secondary" v-on:click="computeScores" v-on:keyup.enter="computeScores">Calculate</button>
-		</div>
+
+  <!-- Game Status Section -->
+  <div class="row" v-if="gameStatus">
+	<div class="col-12">
+	  <div class="game-status" :class="{ 'winner-announcement': gameStatus.includes('Winner') }">
+		{{ gameStatus }}
 	  </div>
 	</div>
-	<div class="col-md-5">
-	  <div class="body">
-		<div class="input-group mb-3">
-		  <input type="text" class="form-control" placeholder="Enter player's name" v-model="newMemberName" v-on:keyup.enter="addMember">
-		  <div class="input-group-append">
-			<button type="button" class="btn btn-secondary" v-on:click="addMember">Add</button>
+  </div>
+
+  <!-- Round Counter -->
+  <div class="row" v-if="currentRound > 0">
+	<div class="col-12">
+	  <div class="round-counter">
+		Round {{ currentRound }} | Active Players: {{ activePlayersCount }} | Busted Players: {{ bustedPlayersCount }}
+	  </div>
+	</div>
+  </div>
+
+  <!-- Control Section -->
+  <div class="row">
+	<div class="col-12">
+	  <div class="control-section">
+		<div class="row">
+		  <!-- Add Player Section -->
+		  <div class="col-md-6 mb-3">
+			<div class="input-group">
+			  <input type="text" class="form-control" placeholder="Enter player's name" v-model="newMemberName" @keyup.enter="addMember" maxlength="20">
+			  <div class="input-group-append">
+				<button type="button" class="btn btn-success" @click="addMember" :disabled="!newMemberName.trim()">
+				  <span v-if="!newMemberName.trim()">Add Player</span>
+				  <span v-else>+ Add</span>
+				</button>
+			  </div>
+			</div>
+		  </div>
+
+		  <!-- Game Controls -->
+		  <div class="col-md-6 mb-3">
+			<div class="d-flex flex-wrap gap-2">
+			  <button type="button" class="btn btn-warning" @click="computeScores" :disabled="!canCalculateScores">
+				📊 Calculate Round
+			  </button>
+			  <button type="button" class="btn btn-danger" @click="resetGame">
+				🔄 Reset Game
+			  </button>
+			  <button type="button" class="btn btn-secondary" @click="undoLastRound" :disabled="!canUndo">
+				↶ Undo
+			  </button>
+			</div>
+		  </div>
+		</div>
+
+		<!-- Lowest Score Display -->
+		<div class="row" v-if="lowestScore > 0">
+		  <div class="col-12">
+			<div class="input-group">
+			  <div class="input-group-prepend">
+				<span class="input-group-text bg-info text-white font-weight-bold">Lowest Score This Round</span>
+			  </div>
+			  <div class="form-control bg-light font-weight-bold text-center">{{ lowestScore }}</div>
+			</div>
 		  </div>
 		</div>
 	  </div>
 	</div>
   </div>
-  <div class="row">
-	<div class="col-md-12">
-	  <div class="input-group">
-		<div class="form-control col-header">Player name</div>
-		<div class="form-control col-header">Total score</div>
-		<div class="form-control col-header">Current score</div>
+
+  <!-- Players Table -->
+  <div class="row" v-if="gamers.length > 0">
+	<div class="col-12">
+	  <div class="input-group mb-3">
+		<div class="form-control col-header">👤 Player Name</div>
+		<div class="form-control col-header">🏆 Total Score</div>
+		<div class="form-control col-header">📝 Current Round</div>
+		<div class="form-control col-header">🎯 Status</div>
 	  </div>
 	</div>
   </div>
-  <div class="row">
-	<div class="col-md-12">
-	  <div class="gamer-row input-group" v-for="gamer in gamers" v-bind:class="{ playerBusted: gamer.isBusted }">
-		<div class="gamer-name form-control">{{gamer.name}}</div>
-		<div class="total-score form-control">{{gamer.totalScore}}</div>
-		<input type="number" v-model="gamer.currentScore" class="form-control current-score" placeholder="score">
+
+  <div class="row" v-if="gamers.length > 0">
+	<div class="col-12">
+	  <div class="gamer-row input-group" v-for="(gamer, index) in gamers" :key="gamer.id" :class="{ 
+		'playerBusted': gamer.isBusted,
+		'score-updated': gamer.scoreUpdated
+	  }">
+		<div class="gamer-name form-control">
+		  <span class="player-number">{{ index + 1 }}.</span>
+		  {{ gamer.name }}
+		</div>
+		<div class="total-score form-control">{{ gamer.totalScore }}</div>
+		<input type="number" v-model.number="gamer.currentScore" class="form-control current-score" 
+			   placeholder="Enter score" min="0" max="999" @input="validateScore(gamer)" @focus="clearScoreInput"
+			   :disabled="gamer.isBusted">
+		<div class="form-control d-flex align-items-center justify-content-center">
+		  <span v-if="gamer.isBusted" class="badge badge-danger">💀 BUSTED</span>
+		  <span v-else-if="gamer.totalScore >= 90" class="badge badge-warning">⚠️ DANGER</span>
+		  <span v-else-if="gamer.totalScore >= 80" class="badge badge-info">⚡ WARNING</span>
+		  <span v-else class="badge badge-success">✅ SAFE</span>
+		</div>
+	  </div>
+	</div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="row" v-if="gamers.length === 0">
+	<div class="col-12 text-center py-5">
+	  <div class="empty-state">
+		<h4 class="text-muted mb-3">🎮 Ready to Play?</h4>
+		<p class="text-muted mb-4">Add players to start tracking your 100 Not Out game!</p>
+		<div class="game-rules bg-light p-4 rounded">
+		  <h5 class="mb-3">📋 How to Play:</h5>
+		  <ul class="text-left text-muted">
+			<li>Add all players using the input above</li>
+			<li>Enter each player's score for the current round</li>
+			<li>Click "Calculate Round" to update total scores</li>
+			<li>First player to cross 100 points is eliminated</li>
+			<li>Game continues until only one player remains!</li>
+		  </ul>
+		</div>
+	  </div>
+	</div>
+  </div>
+
+  <!-- Game History -->
+  <div class="row" v-if="gameHistory.length > 0">
+	<div class="col-12">
+	  <div class="mt-4">
+		<h5 class="mb-3">📈 Game History</h5>
+		<div class="game-history">
+		  <div class="history-item" v-for="(round, index) in gameHistory" :key="index">
+			<strong>Round {{ round.roundNumber }}:</strong>
+			<span v-for="(player, playerIndex) in round.players" :key="playerIndex">
+			  {{ player.name }}: {{ player.score }}{{ playerIndex < round.players.length - 1 ? ', ' : '' }}
+			</span>
+		  </div>
+		</div>
 	  </div>
 	</div>
   </div>
