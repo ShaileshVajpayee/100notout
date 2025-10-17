@@ -6,6 +6,7 @@ class Gamer {
 		this.totalScore = 0;
 		this.isBusted = false;
 		this.scoreUpdated = false;
+		this.hasPenalty = false; // New: tracks if player has penalty this round
 	}
 }
 
@@ -76,6 +77,17 @@ const app = new Vue({
 			}
 		},
 		
+		togglePenalty(gamer) {
+			// Toggle penalty status for a player
+			gamer.hasPenalty = !gamer.hasPenalty;
+			// If penalty is applied, set current score to 25
+			if (gamer.hasPenalty) {
+				gamer.currentScore = 25;
+			} else {
+				gamer.currentScore = 0;
+			}
+		},
+		
 		computeScores() {
 			if (!this.canCalculateScores) {
 				return;
@@ -100,10 +112,19 @@ const app = new Vue({
 			// Update scores
 			this.gamers.forEach(gamer => {
 				if (!gamer.isBusted) {
-					const currentScore = parseInt(gamer.currentScore) || 0;
+					let currentScore;
+					
+					// If player has penalty, use 25 as their score
+					if (gamer.hasPenalty) {
+						currentScore = 25;
+					} else {
+						currentScore = parseInt(gamer.currentScore) || 0;
+					}
+					
 					const pointsToAdd = currentScore - this.lowestScore;
 					gamer.totalScore += pointsToAdd;
 					gamer.currentScore = 0;
+					gamer.hasPenalty = false; // Reset penalty for next round
 					gamer.scoreUpdated = true;
 					
 					// Check if busted
