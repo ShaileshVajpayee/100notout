@@ -46,19 +46,16 @@ const app = new Vue({
 		addMember() {
 			const trimmedName = this.newMemberName.trim();
 			if (!trimmedName) {
-				this.showNotification("Please enter a player name!", "warning");
 				return;
 			}
 			
 			// Check for duplicate names
 			if (this.gamers.some(gamer => gamer.name.toLowerCase() === trimmedName.toLowerCase())) {
-				this.showNotification("Player name already exists!", "warning");
 				return;
 			}
 			
 			this.gamers.push(new Gamer(trimmedName));
 			this.newMemberName = "";
-			this.showNotification(`${trimmedName} added to the game!`, "success");
 			
 			// Update game status after adding player
 			this.checkGameStatus();
@@ -81,7 +78,6 @@ const app = new Vue({
 		
 		computeScores() {
 			if (!this.canCalculateScores) {
-				this.showNotification("Please enter scores for all active players!", "warning");
 				return;
 			}
 			
@@ -113,7 +109,6 @@ const app = new Vue({
 					// Check if busted
 					if (gamer.totalScore > 100) {
 						gamer.isBusted = true;
-						this.showNotification(`${gamer.name} is BUSTED! (${gamer.totalScore} points)`, "danger");
 					}
 					
 					// Remove animation class after animation completes
@@ -129,8 +124,6 @@ const app = new Vue({
 			
 			// Check for winner
 			this.checkGameStatus();
-			
-			this.showNotification(`Round ${this.currentRound} completed!`, "info");
 		},
 		
 		checkGameStatus() {
@@ -164,7 +157,6 @@ const app = new Vue({
 		
 		undoLastRound() {
 			if (!this.lastRoundState) {
-				this.showNotification("Nothing to undo!", "warning");
 				return;
 			}
 			
@@ -175,7 +167,6 @@ const app = new Vue({
 			this.lastRoundState = null;
 			
 			this.checkGameStatus();
-			this.showNotification("Last round undone!", "info");
 		},
 		
 		resetGame() {
@@ -192,8 +183,6 @@ const app = new Vue({
 			this.gameHistory = [];
 			this.lastRoundState = null;
 			this.newMemberName = "";
-			
-			this.showNotification("Game reset successfully!", "info");
 		},
 		
 		showNotification(message, type = "info") {
@@ -230,6 +219,5 @@ const app = new Vue({
 	
 	mounted() {
 		// Initialize the game
-		this.showNotification("Welcome to 100 Not Out! Add players to start.", "info");
 	}
 });
