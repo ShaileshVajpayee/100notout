@@ -10,6 +10,7 @@ html, body {
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 	min-height: 100vh;
+	font-size: 16px;
 }
 
 /* Container styling */
@@ -34,7 +35,7 @@ html, body {
 
 .header h3 {
 	color: white;
-	font-size: 2.5rem;
+	font-size: 3rem;
 	font-weight: bold;
 	text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 	margin: 0;
@@ -59,7 +60,7 @@ html, body {
 	align-items: center;
 	justify-content: center;
 	font-weight: bold;
-	font-size: 1.1rem;
+	font-size: 1.3rem;
 	text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
@@ -87,6 +88,7 @@ html, body {
 	display: flex;
 	align-items: center;
 	padding: 15px;
+	font-size: 1.1rem;
 }
 
 .gamer-row .total-score {
@@ -97,7 +99,7 @@ html, body {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 1.2rem;
+	font-size: 1.4rem;
 }
 
 .gamer-row .current-score {
@@ -105,7 +107,7 @@ html, body {
 	border: 2px solid #ffeaa7;
 	font-weight: 600;
 	text-align: center;
-	font-size: 1.1rem;
+	font-size: 1.3rem;
 }
 
 .gamer-row .current-score:focus {
@@ -134,10 +136,11 @@ html, body {
 .btn {
 	border-radius: 25px;
 	font-weight: 600;
-	padding: 10px 25px;
+	padding: 12px 30px;
 	transition: all 0.3s ease;
 	border: none;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	font-size: 1.1rem;
 }
 
 .btn:hover {
@@ -170,7 +173,7 @@ html, body {
 	border-radius: 10px;
 	border: 2px solid #e9ecef;
 	padding: 12px 15px;
-	font-size: 1rem;
+	font-size: 1.1rem;
 	transition: all 0.3s ease;
 }
 
@@ -188,12 +191,13 @@ html, body {
 	text-align: center;
 	font-weight: 600;
 	color: #1976d2;
+	font-size: 1.2rem;
 }
 
 .winner-announcement {
 	background: linear-gradient(45deg, #ffd700, #ffed4e);
 	color: #8b4513;
-	font-size: 1.3rem;
+	font-size: 1.5rem;
 	font-weight: bold;
 	animation: pulse 2s infinite;
 }
@@ -213,6 +217,7 @@ html, body {
 	font-weight: bold;
 	color: #495057;
 	margin-bottom: 20px;
+	font-size: 1.2rem;
 }
 
 /* Responsive design */
@@ -223,18 +228,18 @@ html, body {
 	}
 	
 	.header h3 {
-		font-size: 2rem;
+		font-size: 2.2rem;
 	}
 	
 	.col-header {
-		font-size: 0.9rem;
+		font-size: 1.1rem;
 		height: 50px;
 	}
 	
 	.gamer-row .gamer-name,
 	.gamer-row .total-score,
 	.gamer-row .current-score {
-		font-size: 0.9rem;
+		font-size: 1rem;
 		padding: 10px;
 	}
 }
