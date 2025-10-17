@@ -66,9 +66,6 @@
 		  <!-- Game Controls -->
 		  <div class="col-md-6 mb-3">
 			<div class="d-flex flex-wrap gap-2">
-			  <button type="button" class="btn btn-warning" @click="computeScores" :disabled="!canCalculateScores">
-				📊 Calculate Round
-			  </button>
 			  <button type="button" class="btn btn-danger" @click="resetGame">
 				🔄 Reset Game
 			  </button>
@@ -146,6 +143,17 @@
 			<li>Game continues until only one player remains!</li>
 		  </ul>
 		</div>
+	  </div>
+	</div>
+  </div>
+
+  <!-- Calculate Button -->
+  <div class="row" v-if="gamers.length > 0">
+	<div class="col-12">
+	  <div class="text-center mb-4">
+		<button type="button" class="btn btn-warning btn-lg" @click="computeScores" :disabled="!canCalculateScores">
+		  📊 Calculate Round
+		</button>
 	  </div>
 	</div>
   </div>
