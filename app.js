@@ -112,16 +112,16 @@ const app = new Vue({
 			// Update scores
 			this.gamers.forEach(gamer => {
 				if (!gamer.isBusted) {
-					let currentScore;
+					let pointsToAdd;
 					
-					// If player has penalty, use 25 as their score
+					// If player has penalty, add exactly 25 points to total
 					if (gamer.hasPenalty) {
-						currentScore = 25;
+						pointsToAdd = 25;
 					} else {
-						currentScore = parseInt(gamer.currentScore) || 0;
+						const currentScore = parseInt(gamer.currentScore) || 0;
+						pointsToAdd = currentScore - this.lowestScore;
 					}
 					
-					const pointsToAdd = currentScore - this.lowestScore;
 					gamer.totalScore += pointsToAdd;
 					gamer.currentScore = 0;
 					gamer.hasPenalty = false; // Reset penalty for next round
