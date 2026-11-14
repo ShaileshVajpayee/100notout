@@ -10,9 +10,15 @@ class Gamer {
 	}
 }
 
+const GAMES = {
+	"100notout": "🃏 100 NOT OUT",
+	satti: "7️⃣ SATTI LAVNI",
+	judgement: "⚖️ JUDGEMENT"
+};
+
 const app = new Vue({
 	el: "#app",
-	data: {
+	data: Object.assign({
 		lowestScore: 0,
 		gamers: [],
 		newMemberName: "",
@@ -20,8 +26,11 @@ const app = new Vue({
 		gameStatus: "",
 		gameHistory: [],
 		lastRoundState: null
-	},
+	}, store.load("100notout") || {}, { selectedGame: store.load("selectedGame") }),
 	computed: {
+		headerTitle() {
+			return GAMES[this.selectedGame] || "🃏 CARD SCORE TRACKER";
+		},
 		activePlayersCount() {
 			return this.gamers.filter(gamer => !gamer.isBusted).length;
 		},
@@ -35,6 +44,9 @@ const app = new Vue({
 				gamer.currentScore !== null && gamer.currentScore !== undefined && gamer.currentScore !== ""
 			);
 		},
+		reversedHistory() {
+			return this.gameHistory.slice().reverse();
+		},
 		canUndo() {
 			return this.gameHistory.length > 0;
 		},
@@ -44,8 +56,18 @@ const app = new Vue({
 		}
 	},
 	methods: {
+		selectGame(game) {
+			this.selectedGame = game;
+			window.scrollTo(0, 0);
+		},
+
+		goHome() {
+			this.selectedGame = null;
+			window.scrollTo(0, 0);
+		},
+
 		addMember() {
-			const trimmedName = this.newMemberName.trim();
+			const trimmedName = capName(this.newMemberName);
 			if (!trimmedName) {
 				return;
 			}
@@ -230,6 +252,16 @@ const app = new Vue({
 	},
 	
 	watch: {
+		selectedGame(v) {
+			store.save("selectedGame", v);
+		},
+		$data: {
+			handler(v) {
+				const { selectedGame, ...rest } = v;
+				store.save("100notout", rest);
+			},
+			deep: true
+		},
 		// Watch for winner changes - only set status if game has actually been played
 		winner(newWinner) {
 			if (newWinner && this.currentRound > 0) {
