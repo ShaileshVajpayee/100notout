@@ -3,9 +3,9 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<title>100 Not Out - Card Game Score Tracker</title>
+	<title>Card Score Tracker - 100 Not Out, Satti Lavni, Judgement</title>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description" content="Track scores for the 100 Not Out card game. First player to cross 100 loses!">
+	<meta name="description" content="Track scores for card games: 100 Not Out, Satti Lavni and Judgement.">
 	<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
 	<link rel="stylesheet" type="text/css" href="./style.css">
 	<link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,18 +14,56 @@
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.6.14/vue.min.js"></script>
-	<script type="text/javascript" src="./app.js" async></script>
+	<script type="text/javascript" src="./storage.js" defer></script>
+	<script type="text/javascript" src="./satti.js" defer></script>
+	<script type="text/javascript" src="./judgement.js" defer></script>
+	<script type="text/javascript" src="./app.js" defer></script>
 </head>
 <body>
 <div class="container-fluid" id="app">
   <!-- Header Section -->
   <div class="row">
 	<div class="col-12">
-	  <div class="header">
-		<h3>🃏 100 NOT OUT</h3>
+	  <div class="header" :class="{ 'has-back': selectedGame }">
+		<button v-if="selectedGame" type="button" class="back-btn" @click="goHome" aria-label="Back to games">← Games</button>
+		<h3>{{ headerTitle }}</h3>
 	  </div>
 	</div>
   </div>
+
+  <!-- Game Picker -->
+  <div v-if="!selectedGame" class="game-picker">
+	<p class="picker-intro">Choose a game to keep score</p>
+	<div class="game-cards">
+	  <button type="button" class="game-card game-card-100" @click="selectGame('100notout')">
+		<span class="game-card-suit">♠</span>
+		<span class="game-card-emoji">🃏</span>
+		<span class="game-card-title">100 Not Out</span>
+		<span class="game-card-desc">Don't cross 100. Last player standing wins.</span>
+		<span class="game-card-suit bottom">♠</span>
+	  </button>
+	  <button type="button" class="game-card game-card-satti" @click="selectGame('satti')">
+		<span class="game-card-suit">♥</span>
+		<span class="game-card-emoji">7️⃣</span>
+		<span class="game-card-title">Satti Lavni</span>
+		<span class="game-card-desc">7 rounds. Fewest points left in hand wins.</span>
+		<span class="game-card-suit bottom">♥</span>
+	  </button>
+	  <button type="button" class="game-card game-card-judgement" @click="selectGame('judgement')">
+		<span class="game-card-suit">♦</span>
+		<span class="game-card-emoji">⚖️</span>
+		<span class="game-card-title">Judgement</span>
+		<span class="game-card-desc">Bid your hands, make them exactly, score big.</span>
+		<span class="game-card-suit bottom">♦</span>
+	  </button>
+	</div>
+  </div>
+
+  <satti-lavni v-if="selectedGame === 'satti'"></satti-lavni>
+  <judgement-game v-if="selectedGame === 'judgement'"></judgement-game>
+
+  <!-- ============ 100 NOT OUT ============ -->
+  <template v-if="selectedGame === '100notout'">
 
   <!-- Game Status Section -->
   <div class="row" v-if="gameStatus">
@@ -53,7 +91,7 @@
 		  <!-- Add Player Section -->
 		  <div class="col-md-6 mb-3">
 			<div class="input-group">
-			  <input type="text" class="form-control" placeholder="Enter player's name" v-model="newMemberName" @keyup.enter="addMember" maxlength="20">
+			  <input type="text" class="form-control" placeholder="Enter player's name" autocapitalize="words" autocomplete="off" v-model="newMemberName" @keyup.enter="addMember" maxlength="20">
 			  <div class="input-group-append">
 				<button type="button" class="btn btn-success" @click="addMember" :disabled="!newMemberName.trim()">
 				  <span v-if="!newMemberName.trim()">Add Player</span>
@@ -173,7 +211,7 @@
 	  <div class="mt-4">
 		<h5 class="mb-3">📈 Game History</h5>
 		<div class="game-history">
-		  <div class="history-item" v-for="(round, index) in gameHistory" :key="index">
+		  <div class="history-item" v-for="round in reversedHistory" :key="round.roundNumber">
 			<strong>Round {{ round.roundNumber }}:</strong>
 			<span v-for="(player, playerIndex) in round.players" :key="playerIndex">
 			  {{ player.name }}: {{ player.score }}{{ playerIndex < round.players.length - 1 ? ', ' : '' }}
@@ -183,6 +221,229 @@
 	  </div>
 	</div>
   </div>
+  </template>
 </div>
+
+<!-- ============ SATTI LAVNI ============ -->
+<script type="text/x-template" id="satti-template">
+<div class="game-panel">
+  <div class="control-section">
+	<div class="input-group">
+	  <input type="text" class="form-control" placeholder="Enter player's name" autocapitalize="words" autocomplete="off" v-model="newName" @keyup.enter="addPlayer" maxlength="20">
+	  <div class="input-group-append">
+		<button type="button" class="btn btn-success" @click="addPlayer" :disabled="!newName.trim()">+ Add</button>
+	  </div>
+	</div>
+	<div class="action-row" v-if="players.length">
+	  <button type="button" class="btn btn-secondary" @click="newGameSamePlayers" :disabled="!hasAnyScore">🔁 New Game</button>
+	  <button type="button" class="btn btn-danger" @click="resetGame">🔄 Reset</button>
+	</div>
+  </div>
+
+  <div class="game-status" v-if="statusText" :class="{ 'winner-announcement': gameOver }">{{ statusText }}</div>
+
+  <template v-if="players.length">
+	<div class="score-table-wrap jd-wrap">
+	  <table class="score-table jd-table satti-table">
+		<thead>
+		  <tr>
+			<th class="sticky-col round-head">Round</th>
+			<th v-for="(p, i) in players" :key="p.id" class="player-head" :class="{ leader: isLeader(p) }">
+			  <span v-if="isLeader(p)">👑</span>
+			  <span class="ph-name">{{ p.name }}</span>
+			  <button type="button" class="head-remove" @click="removePlayer(i)" :aria-label="'Remove ' + p.name">×</button>
+			</th>
+		  </tr>
+		</thead>
+		<tbody>
+		  <tr v-for="r in rounds" :key="r" :class="{ 'current-row': r - 1 === currentRound }">
+			<td class="sticky-col round-label"><span class="rl-num">Round {{ r }}</span></td>
+			<td v-for="(p, i) in players" :key="p.id" class="satti-cell">
+			  <input type="number" inputmode="numeric" pattern="[0-9]*" min="0" class="cell-input"
+					 v-model.number="p.scores[r - 1]" @change="sanitize(p, r - 1)" placeholder="–" :aria-label="p.name + ' round ' + r">
+			</td>
+		  </tr>
+		</tbody>
+		<tfoot>
+		  <tr>
+			<td class="sticky-col round-label total-label">Total</td>
+			<td v-for="(p, i) in players" :key="p.id" class="jd-total" :class="{ leader: isLeader(p) }">{{ total(p) }}</td>
+		  </tr>
+		</tfoot>
+	  </table>
+	</div>
+	<p class="table-hint show-always">Enter the points left in each player's hand · lowest total wins 👑</p>
+  </template>
+
+  <div v-else class="empty-state text-center">
+	<h4 class="text-muted mb-3">🎮 Ready to Play?</h4>
+	<p class="text-muted mb-4">Add players to start tracking your Satti Lavni game!</p>
+	<div class="game-rules bg-light p-4 rounded">
+	  <h5 class="mb-3">📋 How to score:</h5>
+	  <ul class="text-left text-muted">
+		<li>The game is played over 7 rounds</li>
+		<li>When a round ends, add up the cards left in each player's hand (A = 1, J = 11, Q = 12, K = 13)</li>
+		<li>The player who went out first scores 0</li>
+		<li>Enter each player's points under that round</li>
+		<li>After 7 rounds, the lowest total wins 👑</li>
+	  </ul>
+	</div>
+  </div>
+</div>
+</script>
+
+<!-- ============ JUDGEMENT ============ -->
+<script type="text/x-template" id="judgement-template">
+<div class="game-panel">
+  <!-- Setup -->
+  <template v-if="phase === 'setup'">
+	<div class="control-section">
+	  <div class="input-group">
+		<input type="text" class="form-control" placeholder="Enter player's name" autocapitalize="words" autocomplete="off" v-model="newName" @keyup.enter="addPlayer" maxlength="20">
+		<div class="input-group-append">
+		  <button type="button" class="btn btn-success" @click="addPlayer" :disabled="!newName.trim()">+ Add</button>
+		</div>
+	  </div>
+
+	  <ul class="setup-players" v-if="players.length">
+		<li v-for="(p, i) in players" :key="p.id">
+		  <span class="player-number">{{ i + 1 }}</span>
+		  <span class="pname">{{ p.name }}</span>
+		  <span class="setup-actions">
+			<button type="button" class="icon-btn" @click="movePlayer(i, -1)" :disabled="i === 0" aria-label="Move up">↑</button>
+			<button type="button" class="icon-btn" @click="movePlayer(i, 1)" :disabled="i === players.length - 1" aria-label="Move down">↓</button>
+			<button type="button" class="icon-btn danger" @click="removePlayer(i)" :aria-label="'Remove ' + p.name">×</button>
+		  </span>
+		</li>
+	  </ul>
+	  <p class="setup-note" v-if="players.length">Put players in seating order — player 1 deals first.</p>
+
+	  <div class="setup-options" v-if="players.length >= 2">
+		<label class="setup-field">
+		  <span>Cards in first round</span>
+		  <select class="form-control" v-model.number="startCards">
+			<option v-for="c in cardOptions" :key="c" :value="c">{{ c }}</option>
+		  </select>
+		</label>
+		<label class="setup-check">
+		  <input type="checkbox" v-model="goBackUp">
+		  <span>Go back up after 1 card ({{ startCards }} → 1 → {{ startCards }})</span>
+		</label>
+		<p class="setup-note">{{ plannedRounds.length }} rounds: {{ plannedRounds.join(' · ') }}</p>
+	  </div>
+
+	  <div class="action-row">
+		<button type="button" class="btn btn-warning btn-lg" @click="startGame" :disabled="players.length < 2">▶️ Start Game</button>
+		<button type="button" class="btn btn-danger" v-if="players.length" @click="resetGame">🔄 Reset</button>
+	  </div>
+	</div>
+
+	<div class="empty-state text-center" v-if="players.length < 2">
+	  <div class="game-rules bg-light p-4 rounded">
+		<h5 class="mb-3">📋 How to play:</h5>
+		<ul class="text-left text-muted">
+		  <li>Each round, everyone bids how many hands they think they'll win</li>
+		  <li>Make your bid exactly → <strong>10 + bid</strong> points (bid 0 and win 0 = 10)</li>
+		  <li>Miss it (over or under) → 0 points</li>
+		  <li>Cards go down by one each round; trump rotates ♠ ♥ ♦ ♣ (no trump on the 1-card round)</li>
+		  <li>Highest total at the end wins 👑</li>
+		</ul>
+	  </div>
+	</div>
+  </template>
+
+  <!-- Playing / Done -->
+  <template v-else>
+	<div class="game-status" :class="{ 'winner-announcement': phase === 'done' }">{{ statusText }}</div>
+
+	<div class="round-card" v-if="phase === 'playing' && round">
+	  <div class="round-info">
+		<div class="round-chip"><span class="label">Cards</span><span class="value">{{ round.cards }}</span></div>
+		<div class="round-chip">
+		  <span class="label">Trump</span>
+		  <span class="value trump-val" :class="{ red: trumpOf(round) && trumpOf(round).red }"><template v-if="trumpOf(round)"><span class="trump-sym">{{ trumpOf(round).symbol }}</span> {{ trumpOf(round).name }}</template><template v-else>🚫 No trump</template></span>
+		</div>
+		<div class="round-chip"><span class="label">Dealer</span><span class="value">{{ players[dealerIndex].name }}</span></div>
+	  </div>
+
+	  <table class="bid-table">
+		<thead>
+		  <tr><th>Player</th><th>Bid</th><th>Won</th></tr>
+		</thead>
+		<tbody>
+		  <tr v-for="(p, i) in players" :key="p.id">
+			<td class="name-cell">
+			  <span class="pname">{{ p.name }}</span>
+			  <span v-if="i === dealerIndex" class="dealer-badge" title="Dealer">D</span>
+			</td>
+			<td><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" :max="round.cards" class="cell-input"
+					   v-model.number="round.bids[i]" @change="sanitize(round.bids, i)" placeholder="–" :aria-label="p.name + ' bid'"></td>
+			<td><input type="number" inputmode="numeric" pattern="[0-9]*" min="0" :max="round.cards" class="cell-input"
+					   v-model.number="round.tricks[i]" @change="sanitize(round.tricks, i)" placeholder="–" :aria-label="p.name + ' hands won'"></td>
+		  </tr>
+		</tbody>
+		<tfoot>
+		  <tr>
+			<td>Total</td>
+			<td :class="{ warn: allBidsIn && bidTotal === round.cards }">{{ bidTotal }} / {{ round.cards }}</td>
+			<td :class="{ warn: allTricksIn && trickTotal !== round.cards, ok: allTricksIn && trickTotal === round.cards }">{{ trickTotal }} / {{ round.cards }}</td>
+		  </tr>
+		</tfoot>
+	  </table>
+
+	  <p class="round-msg warn" v-if="allBidsIn && bidTotal === round.cards">⚠️ Bids add up to {{ round.cards }} — the dealer must bid so that someone misses.</p>
+	  <p class="round-msg warn" v-if="allTricksIn && trickTotal !== round.cards">Hands won must add up to {{ round.cards }}.</p>
+
+	  <div class="action-row">
+		<button type="button" class="btn btn-warning btn-lg" @click="finishRound" :disabled="!canFinishRound">✅ Finish Round</button>
+		<button type="button" class="btn btn-secondary" @click="undoRound" :disabled="current === 0">↶ Undo</button>
+	  </div>
+	</div>
+
+	<h5 class="scoreboard-title">📊 Scoreboard</h5>
+	<div class="score-table-wrap jd-wrap">
+	  <table class="score-table jd-table">
+		<thead>
+		  <tr>
+			<th class="sticky-col round-head">Round</th>
+			<th v-for="(p, i) in players" :key="p.id" class="player-head" :class="{ leader: leaders.includes(p) }">
+			  <span v-if="leaders.includes(p)">👑</span>
+			  <span class="ph-name">{{ p.name }}</span>
+			</th>
+		  </tr>
+		</thead>
+		<tbody>
+		  <tr v-for="(r, ri) in rounds" :key="ri" :class="{ 'current-row': ri === current && phase === 'playing', 'pending-row': !r.done && !(ri === current && phase === 'playing') }">
+			<td class="sticky-col round-label">
+			  <span class="rl-num">R{{ ri + 1 }}</span>
+			  <span class="rl-info" :class="{ red: trumpOf(r) && trumpOf(r).red }">{{ r.cards }} <span class="suit">{{ trumpOf(r) ? trumpOf(r).symbol : "NT" }}</span></span>
+			</td>
+			<td v-for="(p, i) in players" :key="p.id" class="jd-cell" :class="{ made: made(r, i), missed: r.done && !made(r, i) }">
+			  <template v-if="r.done">
+				<span class="pts">{{ points(r, i) }}</span>
+				<span class="bw">{{ r.bids[i] }}/{{ r.tricks[i] }}</span>
+			  </template>
+			  <span v-else class="dash">–</span>
+			</td>
+		  </tr>
+		</tbody>
+		<tfoot>
+		  <tr>
+			<td class="sticky-col round-label total-label">Total</td>
+			<td v-for="(p, i) in players" :key="p.id" class="jd-total" :class="{ leader: leaders.includes(p) }">{{ totals[i] }}</td>
+		  </tr>
+		</tfoot>
+	  </table>
+	</div>
+	<p class="table-hint show-always">Small numbers = bid/won · ✓ green = bid made (10 + bid) · grey = missed (0)</p>
+
+	<div class="action-row">
+	  <button type="button" class="btn btn-secondary" v-if="phase === 'done'" @click="undoRound">↶ Undo Last Round</button>
+	  <button type="button" class="btn btn-success" v-if="phase === 'done'" @click="playAgain">🔁 Play Again</button>
+	  <button type="button" class="btn btn-danger" @click="resetGame">🔄 Reset</button>
+	</div>
+  </template>
+</div>
+</script>
 </body>
 </html>
